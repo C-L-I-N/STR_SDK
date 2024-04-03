@@ -17,22 +17,8 @@
 # limitations under the License.
 ################################################################################
 
-
-#*******************************************************************************
-#***********************     SyncRead and SyncWrite Example      ***********************
-#  Required Environment to run this example :
-#    - Protocol 2.0 supported DYNAMIXEL(X, P, PRO/PRO(A), MX 2.0 series)
-#    - DYNAMIXEL Starter Set (U2D2, U2D2 PHB, 12V SMPS)
-#  How to use the example :
-#    - Select the DYNAMIXEL in use at the MY_DXL in the example code. 
-#    - Build and Run from proper architecture subdirectory.
-#    - For ARM based SBCs such as Raspberry Pi, use linux_sbc subdirectory to build and run.
-#    - https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_sdk/overview/
-#  Author: Ryu Woon Jung (Leon)
-#  Maintainer : Zerom, Will Son
-# *******************************************************************************
-
 import os
+import struct
 
 if os.name == 'nt':
     import msvcrt
@@ -52,43 +38,15 @@ else:
 
 from dynamixel_sdk import *                    # Uses Dynamixel SDK library
 
-#********* DYNAMIXEL Model definition *********
-#***** (Use only one definition at a time) *****
-MY_DXL = 'X_SERIES'       # X330 (5.0 V recommended), X430, X540, 2X430
-# MY_DXL = 'MX_SERIES'    # MX series with 2.0 firmware update.
-# MY_DXL = 'PRO_SERIES'   # H54, H42, M54, M42, L54, L42
-# MY_DXL = 'PRO_A_SERIES' # PRO series with (A) firmware update.
-# MY_DXL = 'P_SERIES'     # PH54, PH42, PM54
-# MY_DXL = 'XL320'        # [WARNING] Operating Voltage : 7.4V
-
 # Control table address
-if MY_DXL == 'X_SERIES' or MY_DXL == 'MX_SERIES':
-    ADDR_TORQUE_ENABLE          = 64
-    ADDR_GOAL_POSITION          = 116
-    LEN_GOAL_POSITION           = 4         # Data Byte Length
-    ADDR_PRESENT_POSITION       = 132
-    LEN_PRESENT_POSITION        = 4         # Data Byte Length
-    DXL_MINIMUM_POSITION_VALUE  = 0         # Refer to the Minimum Position Limit of product eManual
-    DXL_MAXIMUM_POSITION_VALUE  = 4095      # Refer to the Maximum Position Limit of product eManual
-    BAUDRATE                    = 57600
-elif MY_DXL == 'PRO_SERIES':
-    ADDR_TORQUE_ENABLE          = 562       # Control table address is different in DYNAMIXEL model
-    ADDR_GOAL_POSITION          = 596
-    LEN_GOAL_POSITION           = 4
-    ADDR_PRESENT_POSITION       = 611
-    LEN_PRESENT_POSITION        = 4
-    DXL_MINIMUM_POSITION_VALUE  = -150000   # Refer to the Minimum Position Limit of product eManual
-    DXL_MAXIMUM_POSITION_VALUE  = 150000    # Refer to the Maximum Position Limit of product eManual
-    BAUDRATE                    = 57600
-elif MY_DXL == 'P_SERIES' or MY_DXL == 'PRO_A_SERIES':
-    ADDR_TORQUE_ENABLE          = 512        # Control table address is different in DYNAMIXEL model
-    ADDR_GOAL_POSITION          = 564
-    LEN_GOAL_POSITION           = 4          # Data Byte Length
-    ADDR_PRESENT_POSITION       = 580
-    LEN_PRESENT_POSITION        = 4          # Data Byte Length
-    DXL_MINIMUM_POSITION_VALUE  = -150000    # Refer to the Minimum Position Limit of product eManual
-    DXL_MAXIMUM_POSITION_VALUE  = 150000     # Refer to the Maximum Position Limit of product eManual
-    BAUDRATE                    = 57600
+ADDR_TORQUE_ENABLE          = 512        # Control table address is different in DYNAMIXEL model
+ADDR_GOAL_POSITION          = 564
+LEN_GOAL_POSITION           = 4          # Data Byte Length
+ADDR_PRESENT_POSITION       = 580
+LEN_PRESENT_POSITION        = 4          # Data Byte Length
+DXL_MINIMUM_POSITION_VALUE  = -5000      # Refer to the Minimum Position Limit of product eManual
+DXL_MAXIMUM_POSITION_VALUE  = 5000       # Refer to the Maximum Position Limit of product eManual
+BAUDRATE                    = 2000000
 
 # DYNAMIXEL Protocol Version (1.0 / 2.0)
 # https://emanual.robotis.com/docs/en/dxl/protocol2/
@@ -100,7 +58,7 @@ DXL2_ID                     = 2                 # Dynamixel#1 ID : 2
 
 # Use the actual port assigned to the U2D2.
 # ex) Windows: "COM*", Linux: "/dev/ttyUSB*", Mac: "/dev/tty.usbserial-*"
-DEVICENAME                  = '/dev/ttyUSB0'
+DEVICENAME                  = 'COM1'
 
 TORQUE_ENABLE               = 1                 # Value for enabling the torque
 TORQUE_DISABLE              = 0                 # Value for disabling the torque
@@ -209,23 +167,25 @@ while 1:
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
 
-        # Check if groupsyncread data of Dynamixel#1 is available
-        dxl_getdata_result = groupSyncRead.isAvailable(DXL1_ID, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
-        if dxl_getdata_result != True:
-            print("[ID:%03d] groupSyncRead getdata failed" % DXL1_ID)
-            quit()
+        # # Check if groupsyncread data of Dynamixel#1 is available
+        # dxl_getdata_result = groupSyncRead.isAvailable(DXL1_ID, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
+        # if dxl_getdata_result != True:
+        #     print("[ID:%03d] groupSyncRead getdata failed" % DXL1_ID)
+        #     quit()
 
-        # Check if groupsyncread data of Dynamixel#2 is available
-        dxl_getdata_result = groupSyncRead.isAvailable(DXL2_ID, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
-        if dxl_getdata_result != True:
-            print("[ID:%03d] groupSyncRead getdata failed" % DXL2_ID)
-            quit()
+        # # Check if groupsyncread data of Dynamixel#2 is available
+        # dxl_getdata_result = groupSyncRead.isAvailable(DXL2_ID, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
+        # if dxl_getdata_result != True:
+        #     print("[ID:%03d] groupSyncRead getdata failed" % DXL2_ID)
+        #     quit()
 
         # Get Dynamixel#1 present position value
         dxl1_present_position = groupSyncRead.getData(DXL1_ID, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
+        dxl1_present_position = struct.unpack('i', struct.pack('I', dxl1_present_position))[0];
 
         # Get Dynamixel#2 present position value
         dxl2_present_position = groupSyncRead.getData(DXL2_ID, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
+        dxl2_present_position = struct.unpack('i', struct.pack('I', dxl2_present_position))[0];
 
         print("[ID:%03d] GoalPos:%03d  PresPos:%03d\t[ID:%03d] GoalPos:%03d  PresPos:%03d" % (DXL1_ID, dxl_goal_position[index], dxl1_present_position, DXL2_ID, dxl_goal_position[index], dxl2_present_position))
 
