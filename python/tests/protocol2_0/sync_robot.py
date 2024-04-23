@@ -54,7 +54,8 @@ ADDR_OPERATING_MODE         = 11;
 PROTOCOL_VERSION            = 2.0
 
 # Make sure that each DYNAMIXEL ID should have unique ID.
-DXL_ID = [1, 2]
+Master_ID = [1, 2, 3, 4, 5, 6]
+Slave_ID = [7, 8, 9, 10, 11, 12]
 
 
 # Use the actual port assigned to the U2D2.
@@ -106,26 +107,26 @@ else:
     getch()
     quit()
 
-# Homing
-for i in range(0, len(DXL_ID)):
+# Master Robot Homing
+for i in range(0, len(Master_ID)):
     # Enable Dynamixel Torque
-    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID[i], ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Master_ID[i], ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
     if dxl_comm_result != COMM_SUCCESS:
         print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
     elif dxl_error != 0:
         print("%s" % packetHandler.getRxPacketError(dxl_error))
     else:
-        print("Dynamixel#%d has been successfully connected" % DXL_ID[i])
+        print("Dynamixel#%d has been successfully connected" % Master_ID[i])
 
     # Enable trajectory profile
-    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID[i], ADDR_DRIVE_MODE, PROFILE_ENABLE)
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Master_ID[i], ADDR_DRIVE_MODE, PROFILE_ENABLE)
     if dxl_comm_result != COMM_SUCCESS:
         print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
     elif dxl_error != 0:
         print("%s" % packetHandler.getRxPacketError(dxl_error))
 
     # Write start position point
-    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, DXL_ID[i], ADDR_GOAL_POSITION, dxl_goal_position)
+    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Master_ID[i], ADDR_GOAL_POSITION, dxl_goal_position)
     
     if dxl_comm_result != COMM_SUCCESS:
         print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
@@ -134,7 +135,7 @@ for i in range(0, len(DXL_ID)):
 
     while 1:
         # Read present position
-        dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, DXL_ID[i], ADDR_PRESENT_POSITION)
+        dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Master_ID[i], ADDR_PRESENT_POSITION)
         dxl_present_position = struct.unpack('i', struct.pack('I', dxl_present_position))[0];
         
         if dxl_comm_result != COMM_SUCCESS:
@@ -142,31 +143,69 @@ for i in range(0, len(DXL_ID)):
         elif dxl_error != 0:
             print("%s" % packetHandler.getRxPacketError(dxl_error))
 
-        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (DXL_ID[i], dxl_goal_position, dxl_present_position))
+        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (Master_ID[i], dxl_goal_position, dxl_present_position))
 
         if not abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD:
             break    
 
-# Configure master motor operating mode to current control
-dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID[0], ADDR_OPERATING_MODE, CURRENT_CONTROL_MODE)
-if dxl_comm_result != COMM_SUCCESS:
-    print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-elif dxl_error != 0:
-    print("%s" % packetHandler.getRxPacketError(dxl_error))        
+    # Configure master motor operating mode to current control
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Master_ID[i], ADDR_OPERATING_MODE, CURRENT_CONTROL_MODE)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))        
 
-# Disable slave motor trajectory profile
-dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID[1], ADDR_DRIVE_MODE, PROFILE_DISABLE)
-if dxl_comm_result != COMM_SUCCESS:
-    print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-elif dxl_error != 0:
-    print("%s" % packetHandler.getRxPacketError(dxl_error))
+# Slave Robot Homing
+for i in range(0, len(Slave_ID)):
+    # Enable Dynamixel Torque
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Slave_ID[i], ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
+    else:
+        print("Dynamixel#%d has been successfully connected" % Slave_ID[i])
+
+    # Enable trajectory profile
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Slave_ID[i], ADDR_DRIVE_MODE, PROFILE_ENABLE)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+    # Write start position point
+    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Slave_ID[i], ADDR_GOAL_POSITION, dxl_goal_position)
+    
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+    while 1:
+        # Read present position
+        dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Slave_ID[i], ADDR_PRESENT_POSITION)
+        dxl_present_position = struct.unpack('i', struct.pack('I', dxl_present_position))[0];
+        
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+        elif dxl_error != 0:
+            print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (Slave_ID[i], dxl_goal_position, dxl_present_position))
+
+        if not abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD:
+            break  
+
+    # Disable slave motor trajectory profile
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Slave_ID[i], ADDR_DRIVE_MODE, PROFILE_DISABLE)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
 
 while 1:
     # Read present position
-    dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, DXL_ID[0], ADDR_PRESENT_POSITION)
-    # dxl_present_position = struct.unpack('i', struct.pack('I', dxl_present_position))[0];
-    # if dxl_present_position == -65536:
-    #     dxl_present_position = 0;
+    dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Master_ID[0], ADDR_PRESENT_POSITION)
     
     if abs(dxl_present_position - dxl_goal_position) < 10000:
         dxl_goal_position = dxl_present_position;
@@ -177,7 +216,7 @@ while 1:
         print("%s" % packetHandler.getRxPacketError(dxl_error))
     else:
         # Write goal position
-        dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, DXL_ID[1], ADDR_GOAL_POSITION, dxl_goal_position)
+        dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Master_ID[1], ADDR_GOAL_POSITION, dxl_goal_position)
         
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
@@ -186,44 +225,6 @@ while 1:
 
     # Wait for movement to goal position
     time.sleep(0.01)
-
-for i in range(0, len(DXL_ID)):
-    # Enable trajectory profile
-    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID[i], ADDR_DRIVE_MODE, PROFILE_ENABLE)
-    if dxl_comm_result != COMM_SUCCESS:
-        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-    elif dxl_error != 0:
-        print("%s" % packetHandler.getRxPacketError(dxl_error))
-
-    # Write home position
-    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, DXL_ID[i], ADDR_GOAL_POSITION, 0)
-    
-    if dxl_comm_result != COMM_SUCCESS:
-        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-    elif dxl_error != 0:
-        print("%s" % packetHandler.getRxPacketError(dxl_error))
-
-    while 1:
-        # Read present position
-        dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, DXL_ID[i], ADDR_PRESENT_POSITION)
-        dxl_present_position = struct.unpack('i', struct.pack('I', dxl_present_position))[0];
-        
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % packetHandler.getRxPacketError(dxl_error))
-
-        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (DXL_ID[i], 0, dxl_present_position))
-
-        if not abs(0 - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD:
-            break    
-        
-    # Disable Dynamixel Torque
-    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID[i], ADDR_TORQUE_ENABLE, TORQUE_DISABLE)
-    if dxl_comm_result != COMM_SUCCESS:
-        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-    elif dxl_error != 0:
-        print("%s" % packetHandler.getRxPacketError(dxl_error))
 
 # Close port
 portHandler.closePort()
