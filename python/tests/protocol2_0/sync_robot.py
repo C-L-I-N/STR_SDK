@@ -203,25 +203,42 @@ for i in range(0, len(Slave_ID)):
     elif dxl_error != 0:
         print("%s" % packetHandler.getRxPacketError(dxl_error))
 
+# Add parameter storage for Master Robot present position value
+for i in range(0, len(Master_ID)):
+    dxl_addparam_result = groupSyncRead.addParam(Master_ID[i])
+    if dxl_addparam_result != True:
+        print("[ID:%03d] groupSyncRead addparam failed" % Master_ID[i])
+        quit()
+
 while 1:
-    # Read present position
-    dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Master_ID[0], ADDR_PRESENT_POSITION)
-    
-    if abs(dxl_present_position - dxl_goal_position) < 10000:
-        dxl_goal_position = dxl_present_position;
-    
+    # Syncread present position
+    dxl_comm_result = groupSyncRead.txRxPacket()
+
     if dxl_comm_result != COMM_SUCCESS:
         print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
     elif dxl_error != 0:
         print("%s" % packetHandler.getRxPacketError(dxl_error))
     else:
-        # Write goal position
-        dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Master_ID[1], ADDR_GOAL_POSITION, dxl_goal_position)
+        for i in range(0, len(Master_ID)):
+            dxl_present_position = groupSyncRead.getData(Master_ID[i], ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
+            if abs(dxl_present_position - dxl_goal_position) < 10000:
+                dxl_goal_position = dxl_present_position;
+
+            param_goal_position = [DXL_LOBYTE(DXL_LOWORD(dxl_goal_position)), DXL_HIBYTE(DXL_LOWORD(dxl_goal_position)), DXL_LOBYTE(DXL_HIWORD(dxl_goal_position)), DXL_HIBYTE(DXL_HIWORD(dxl_goal_position))]
         
+            # Add Salve Robot goal position value to the Syncwrite parameter storage
+            dxl_addparam_result = groupSyncWrite.addParam(Slave_ID[i], param_goal_position)
+            if dxl_addparam_result != True:
+                print("[ID:%03d] groupSyncWrite addparam failed" % Slave_ID[i])
+                quit()
+
+        # Syncwrite goal position
+        dxl_comm_result = groupSyncWrite.txPacket()
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+        # Clear syncwrite parameter storage
+        groupSyncWrite.clearParam()
 
     # Wait for movement to goal position
     time.sleep(0.01)
