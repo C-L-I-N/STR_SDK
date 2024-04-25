@@ -106,55 +106,7 @@ else:
     print("Failed to change the baudrate")
     print("Press any key to terminate...")
     getch()
-    quit()
-
-# Master Robot Homing
-for i in range(0, len(Master_ID)):
-    # Enable Dynamixel Torque
-    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Master_ID[i], ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
-    if dxl_comm_result != COMM_SUCCESS:
-        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-    elif dxl_error != 0:
-        print("%s" % packetHandler.getRxPacketError(dxl_error))
-    else:
-        print("Dynamixel#%d has been successfully connected" % Master_ID[i])
-
-    # Enable trajectory profile
-    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Master_ID[i], ADDR_DRIVE_MODE, PROFILE_ENABLE)
-    if dxl_comm_result != COMM_SUCCESS:
-        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-    elif dxl_error != 0:
-        print("%s" % packetHandler.getRxPacketError(dxl_error))
-
-    # Write start position point
-    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Master_ID[i], ADDR_GOAL_POSITION, dxl_goal_position[i])
-    
-    if dxl_comm_result != COMM_SUCCESS:
-        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-    elif dxl_error != 0:
-        print("%s" % packetHandler.getRxPacketError(dxl_error))
-
-    while 1:
-        # Read present position
-        dxl_present_position[i], dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Master_ID[i], ADDR_PRESENT_POSITION)
-        dxl_present_position[i] = struct.unpack('i', struct.pack('I', dxl_present_position[i]))[0];
-        
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % packetHandler.getRxPacketError(dxl_error))
-
-        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (Master_ID[i], dxl_goal_position[i], dxl_present_position[i]))
-
-        if not abs(dxl_goal_position[i] - dxl_present_position[i]) > DXL_MOVING_STATUS_THRESHOLD:
-            break    
-
-    # Configure master motor operating mode to current control
-    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Master_ID[i], ADDR_OPERATING_MODE, CURRENT_CONTROL_MODE)
-    if dxl_comm_result != COMM_SUCCESS:
-        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-    elif dxl_error != 0:
-        print("%s" % packetHandler.getRxPacketError(dxl_error))        
+    quit()   
 
 # Slave Robot Homing
 for i in range(0, len(Slave_ID)):
@@ -203,6 +155,55 @@ for i in range(0, len(Slave_ID)):
         print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
     elif dxl_error != 0:
         print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+
+# Master Robot Homing
+for i in range(0, len(Master_ID)):
+    # Enable Dynamixel Torque
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Master_ID[i], ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
+    else:
+        print("Dynamixel#%d has been successfully connected" % Master_ID[i])
+
+    # Enable trajectory profile
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Master_ID[i], ADDR_DRIVE_MODE, PROFILE_ENABLE)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+    # Write start position point
+    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Master_ID[i], ADDR_GOAL_POSITION, dxl_goal_position[i])
+    
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+    while 1:
+        # Read present position
+        dxl_present_position[i], dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Master_ID[i], ADDR_PRESENT_POSITION)
+        dxl_present_position[i] = struct.unpack('i', struct.pack('I', dxl_present_position[i]))[0];
+        
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+        elif dxl_error != 0:
+            print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (Master_ID[i], dxl_goal_position[i], dxl_present_position[i]))
+
+        if not abs(dxl_goal_position[i] - dxl_present_position[i]) > DXL_MOVING_STATUS_THRESHOLD:
+            break    
+
+    # Configure master motor operating mode to current control
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, Master_ID[i], ADDR_OPERATING_MODE, CURRENT_CONTROL_MODE)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))     
 
 # Add parameter storage for Master Robot present position value
 for i in range(0, len(Master_ID)):
