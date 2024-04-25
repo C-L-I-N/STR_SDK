@@ -70,7 +70,8 @@ PROFILE_ENABLE              = 0x0;              # Value for enable trajectory pr
 PROFILE_DISABLE             = 0x02;             # Value for disable trajectory profile
 CURRENT_CONTROL_MODE        = 0;                # Value for current control mode
 
-dxl_goal_position = 0;         # Goal position
+dxl_goal_position = [0, 0, 0, 0, 0, 0];         # Goal position
+dxl_present_position = [0, 0, 0, 0, 0, 0];         # Present position
 
 # Initialize PortHandler instance
 # Set the port path
@@ -126,7 +127,7 @@ for i in range(0, len(Master_ID)):
         print("%s" % packetHandler.getRxPacketError(dxl_error))
 
     # Write start position point
-    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Master_ID[i], ADDR_GOAL_POSITION, dxl_goal_position)
+    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Master_ID[i], ADDR_GOAL_POSITION, dxl_goal_position[i])
     
     if dxl_comm_result != COMM_SUCCESS:
         print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
@@ -135,17 +136,17 @@ for i in range(0, len(Master_ID)):
 
     while 1:
         # Read present position
-        dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Master_ID[i], ADDR_PRESENT_POSITION)
-        dxl_present_position = struct.unpack('i', struct.pack('I', dxl_present_position))[0];
+        dxl_present_position[i], dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Master_ID[i], ADDR_PRESENT_POSITION)
+        dxl_present_position[i] = struct.unpack('i', struct.pack('I', dxl_present_position[i]))[0];
         
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
         elif dxl_error != 0:
             print("%s" % packetHandler.getRxPacketError(dxl_error))
 
-        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (Master_ID[i], dxl_goal_position, dxl_present_position))
+        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (Master_ID[i], dxl_goal_position[i], dxl_present_position[i]))
 
-        if not abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD:
+        if not abs(dxl_goal_position[i] - dxl_present_position[i]) > DXL_MOVING_STATUS_THRESHOLD:
             break    
 
     # Configure master motor operating mode to current control
@@ -174,7 +175,7 @@ for i in range(0, len(Slave_ID)):
         print("%s" % packetHandler.getRxPacketError(dxl_error))
 
     # Write start position point
-    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Slave_ID[i], ADDR_GOAL_POSITION, dxl_goal_position)
+    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, Slave_ID[i], ADDR_GOAL_POSITION, dxl_goal_position[i])
     
     if dxl_comm_result != COMM_SUCCESS:
         print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
@@ -183,17 +184,17 @@ for i in range(0, len(Slave_ID)):
 
     while 1:
         # Read present position
-        dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Slave_ID[i], ADDR_PRESENT_POSITION)
-        dxl_present_position = struct.unpack('i', struct.pack('I', dxl_present_position))[0];
+        dxl_present_position[i], dxl_comm_result, dxl_error = packetHandler.read4ByteTxRx(portHandler, Slave_ID[i], ADDR_PRESENT_POSITION)
+        dxl_present_position[i] = struct.unpack('i', struct.pack('I', dxl_present_position[i]))[0];
         
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
         elif dxl_error != 0:
             print("%s" % packetHandler.getRxPacketError(dxl_error))
 
-        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (Slave_ID[i], dxl_goal_position, dxl_present_position))
+        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (Slave_ID[i], dxl_goal_position[i], dxl_present_position[i]))
 
-        if not abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD:
+        if not abs(dxl_goal_position[i] - dxl_present_position[i]) > DXL_MOVING_STATUS_THRESHOLD:
             break  
 
     # Disable slave motor trajectory profile
@@ -220,11 +221,11 @@ while 1:
         print("%s" % packetHandler.getRxPacketError(dxl_error))
     else:
         for i in range(0, len(Master_ID)):
-            dxl_present_position = groupSyncRead.getData(Master_ID[i], ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
-            if abs(dxl_present_position - dxl_goal_position) < 10000:
-                dxl_goal_position = dxl_present_position;
+            dxl_present_position[i] = groupSyncRead.getData(Master_ID[i], ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
+            if abs(dxl_present_position[i] - dxl_goal_position[i]) < 10000:
+                dxl_goal_position[i] = dxl_present_position[i];
 
-            param_goal_position = [DXL_LOBYTE(DXL_LOWORD(dxl_goal_position)), DXL_HIBYTE(DXL_LOWORD(dxl_goal_position)), DXL_LOBYTE(DXL_HIWORD(dxl_goal_position)), DXL_HIBYTE(DXL_HIWORD(dxl_goal_position))]
+            param_goal_position = [DXL_LOBYTE(DXL_LOWORD(dxl_goal_position[i])), DXL_HIBYTE(DXL_LOWORD(dxl_goal_position[i])), DXL_LOBYTE(DXL_HIWORD(dxl_goal_position[i])), DXL_HIBYTE(DXL_HIWORD(dxl_goal_position[i]))]
         
             # Add Salve Robot goal position value to the Syncwrite parameter storage
             dxl_addparam_result = groupSyncWrite.addParam(Slave_ID[i], param_goal_position)
