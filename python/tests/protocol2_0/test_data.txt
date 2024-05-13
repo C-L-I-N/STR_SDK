@@ -1,0 +1,18 @@
+------goal_position: 1420 ,1416 ,1415 ,1416 ,1416 ,1419
+------present_position: 1419 ,1417 ,1415 ,1418 ,1415 ,1418
+[32m[DEBUG] [1715577237.219127617]: Control cycle is, elapsed: 0.00579231 count: 1[0m
+read_present_position [ID:001] PresPos:1419  radian:0.272090 
+read_present_position [ID:002] PresPos:1417  radian:0.271706 
+read_present_position [ID:003] PresPos:1419  radian:0.272090 
+read_present_position [ID:004] PresPos:1418  radian:0.271898 
+read_present_position [ID:005] PresPos:1416  radian:0.271515 
+read_present_position [ID:006] PresPos:1419  radian:0.272090 
+------goal_position: 1420 ,1416 ,1415 ,1416 ,1416 ,1419
+------present_position: 1419 ,1417 ,1419 ,1418 ,1416 ,1419
+[32m[DEBUG] [1715577237.229764591]: Control cycle is, elapsed: 0.00577202 count: 2[0m
+read_present_position [ID:001] PresPos:1418  radian:0.271898 
+read_present_position [ID:002] PresPos:1416  radian:0.271515 
+read_present_position [ID:003] PresPos:1415  radian:0.271323 
+read_present_position [ID:004] PresPos:1417  radian:0.271706 
+read_present_position [ID:005] PresPos:1416  radian:0.271515 
+read_present_position [ID:006] PresPos:1416  radian:0.271515 
