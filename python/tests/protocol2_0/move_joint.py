@@ -44,7 +44,10 @@ ADDR_GOAL_POSITION          = 564
 LEN_GOAL_POSITION           = 4          # Data Byte Length
 ADDR_PRESENT_POSITION       = 580
 LEN_PRESENT_POSITION        = 4          # Data Byte Length
-DXL_MINIMUM_POSITION_VALUE  = -5000      # Refer to the Minimum Position Limit of product eManual
+ADDR_DRIVE_MODE             = 10;
+ADDR_PROFILE_TIME           = 522
+ADDR_PROFILE_ACC_TIME       = 520
+DXL_MINIMUM_POSITION_VALUE  = 0      # Refer to the Minimum Position Limit of product eManual
 DXL_MAXIMUM_POSITION_VALUE  = 5000       # Refer to the Maximum Position Limit of product eManual
 BAUDRATE                    = 2000000
 
@@ -64,6 +67,9 @@ DEVICENAME                  = 'COM1'
 TORQUE_ENABLE               = 1                 # Value for enabling the torque
 TORQUE_DISABLE              = 0                 # Value for disabling the torque
 DXL_MOVING_STATUS_THRESHOLD = 20                # Dynamixel moving status threshold
+PROFILE_TIME                = 8000
+PROFILE_ACC_TIME            = 3000
+TIME_BASED_PROFILE          = 0x04
 
 index = 0
 dxl_goal_position = [DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE]         # Goal position
@@ -104,6 +110,11 @@ else:
     quit()
 
 for i in range(0, len(DXL_ID)):
+    # Config Profile Time
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID[i], ADDR_DRIVE_MODE, TIME_BASED_PROFILE)
+    dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, DXL_ID[i], ADDR_PROFILE_TIME, PROFILE_TIME)
+    dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, DXL_ID[i], ADDR_PROFILE_ACC_TIME, PROFILE_ACC_TIME)
+    
     # Enable Dynamixel Torque
     dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID[i], ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
     if dxl_comm_result != COMM_SUCCESS:
