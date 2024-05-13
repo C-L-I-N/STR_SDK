@@ -67,8 +67,28 @@ DXL_MOVING_STATUS_THRESHOLD = 20                # Dynamixel moving status thresh
 PROFILE_ENABLE              = 0x0;              # Value for enable trajectory profile
 PROFILE_DISABLE             = 0x02;             # Value for disable trajectory profile
 
+# Extract goal position for file
 index = 0
-dxl_goal_position = [0, 1, 5, 10, 18, 28, 41, 56, 73, 92, 114, 137, 164, 192, 223, 256, 291, 328, 368, 410, 455, 501, 550, 601, 655, 710, 768, 828, 891, 956, 1023, 1092, 1164, 1237, 1313, 1388, 1464, 1539, 1614, 1690, 1765, 1840, 1916, 1991, 2067, 2142, 2217, 2293, 2368, 2443, 2519, 2594, 2670, 2745, 2820, 2896, 2971, 3046, 3122, 3197, 3273, 3348, 3423, 3499, 3574, 3649, 3725, 3800, 3872, 3943, 4011, 4077, 4141, 4202, 4261, 4318, 4372, 4425, 4475, 4522, 4568, 4611, 4652, 4691, 4727, 4761, 4793, 4822, 4850, 4875, 4897, 4918, 4936, 4952, 4966, 4977, 4986, 4993, 4997, 5000, 5000, 4997, 4993, 4986, 4977, 4966, 4952, 4936, 4918, 4897, 4875, 4850, 4822, 4793, 4761, 4727, 4691, 4652, 4611, 4568, 4522, 4475, 4425, 4372, 4318, 4261, 4202, 4141, 4077, 4011, 3943, 3872, 3800, 3725, 3649, 3574, 3499, 3423, 3348, 3273, 3197, 3122, 3046, 2971, 2896, 2820, 2745, 2670, 2594, 2519, 2443, 2368, 2293, 2217, 2142, 2067, 1991, 1916, 1840, 1765, 1690, 1614, 1539, 1464, 1388, 1313, 1237, 1164, 1092, 1023, 956, 891, 828, 768, 710, 655, 601, 550, 501, 455, 410, 368, 328, 291, 256, 223, 192, 164, 137, 114, 92, 73, 56, 41, 28, 18, 10, 5, 1, 0]         # Goal position
+# 创建一个空数组
+values = []
+# 创建一个空的二维数组
+dxl_goal_position = []
+
+# 打开文本文件
+with open('str_log.txt', 'r') as file:
+    # 逐行读取文件内容
+    for line in file:
+        # 检查是否包含"------goal_position:"字段
+        if '------goal_position:' in line:
+            # 提取数据部分
+            values_str = line.split('------goal_position: ')[1]
+            # 分割数据为一个列表
+            values_list = values_str.split(',')
+
+            # 去除列表中每个元素的空格，并转换为整数
+            values = [int(value.strip()) for value in values_list]
+            
+            dxl_goal_position.append(values)
 
 # Initialize PortHandler instance
 # Set the port path
@@ -123,7 +143,7 @@ for i in range(0, len(DXL_ID)):
         print("%s" % packetHandler.getRxPacketError(dxl_error))
 
     # Write start position point
-    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, DXL_ID[i], ADDR_GOAL_POSITION, dxl_goal_position[0])
+    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, DXL_ID[i], ADDR_GOAL_POSITION, dxl_goal_position[0][i])
     
     if dxl_comm_result != COMM_SUCCESS:
         print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
@@ -140,9 +160,9 @@ for i in range(0, len(DXL_ID)):
         elif dxl_error != 0:
             print("%s" % packetHandler.getRxPacketError(dxl_error))
 
-        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (DXL_ID[i], dxl_goal_position[0], dxl_present_position))
+        print("[ID:%03d] GoalPos:%03d  PresPos:%03d" % (DXL_ID[i], dxl_goal_position[0][i], dxl_present_position))
 
-        if not abs(dxl_goal_position[0] - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD:
+        if not abs(dxl_goal_position[0][i] - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD:
             break    
 
     # Disable trajectory profile
@@ -164,10 +184,10 @@ while 1:
         break
 
     for index in range(0, len(dxl_goal_position)):
-        # Allocate goal position value into byte array
-        param_goal_position = [DXL_LOBYTE(DXL_LOWORD(dxl_goal_position[index])), DXL_HIBYTE(DXL_LOWORD(dxl_goal_position[index])), DXL_LOBYTE(DXL_HIWORD(dxl_goal_position[index])), DXL_HIBYTE(DXL_HIWORD(dxl_goal_position[index]))]
-
         for i in range(0, len(DXL_ID)):
+            # Allocate goal position value into byte array
+            param_goal_position = [DXL_LOBYTE(DXL_LOWORD(dxl_goal_position[index][i])), DXL_HIBYTE(DXL_LOWORD(dxl_goal_position[index][i])), DXL_LOBYTE(DXL_HIWORD(dxl_goal_position[index][i])), DXL_HIBYTE(DXL_HIWORD(dxl_goal_position[index][i]))]
+            
             # Add Dynamixel goal position value to the Syncwrite parameter storage
             dxl_addparam_result = groupSyncWrite.addParam(DXL_ID[i], param_goal_position)
             if dxl_addparam_result != True:
@@ -183,7 +203,7 @@ while 1:
         groupSyncWrite.clearParam()
 
         # Wait for movement to goal position
-        time.sleep(0.01)
+        time.sleep(0.005)
 
 # Clear syncread parameter storage
 groupSyncRead.clearParam()
