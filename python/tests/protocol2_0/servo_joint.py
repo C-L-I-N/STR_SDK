@@ -203,7 +203,7 @@ while 1:
         groupSyncWrite.clearParam()
 
         # Wait for movement to goal position
-        time.sleep(0.005)
+        time.sleep(0.01)
 
 # Clear syncread parameter storage
 groupSyncRead.clearParam()
